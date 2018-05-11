@@ -4,6 +4,12 @@
 import macros, json, tables, times
 
 
+const
+  dateISO8601* = "yyyy-MM-dd'T'HH:mm:sszzz"
+
+let defaultTimezone* = utc()
+
+
 proc getInt*(n: JsonNode; key: string): int64 =
   if n.hasKey(key):
     return n[key].getInt()
@@ -18,9 +24,9 @@ proc getObj*(n: JsonNode; key: string): JsonNode =
 
 proc getDate*(n: JsonNode; key: string): DateTime =
   if n.hasKey(key):
-    return parse(n[key].getStr(),"yyyy-MM-dd'T'HH:mm:sszzz",utc())
+    return parse(n[key].getStr(),dateISO8601,defaultTimezone)
   else:
-    let dt = initDateTime(30, mMar, 2017, 00, 00, 00, utc())
+    let dt = initDateTime(30, mMar, 2017, 00, 00, 00, defaultTimezone)
 
 proc getBool*(n: JsonNode; key: string): bool =
   if n.hasKey(key):
@@ -62,6 +68,13 @@ proc toInt32(a :seq[int64]): seq[int32] =
   for n in a:
     result.add(int32(n))
 
+proc getOrdTableStr(n: JsonNode; key: string): OrderedTableRef[string,string] =
+  result = newOrderedTable[string,string]()
+  if n.hasKey(key) and n[key].kind == JObject:
+    let fields = n[key].getFields()
+    for k,v in fields:
+      result[k] = v.getStr()
+
 proc getTableStr(n: JsonNode; key: string): TableRef[string,string] =
   result = newTable[string,string]()
   if n.hasKey(key) and n[key].kind == JObject:
@@ -69,7 +82,12 @@ proc getTableStr(n: JsonNode; key: string): TableRef[string,string] =
     for k,v in fields:
       result[k] = v.getStr()
 
-
+proc getTableJson(n: JsonNode; key: string): TableRef[string,JsonNode] =
+  result = newTable[string,JsonNode]()
+  if n.hasKey(key) and n[key].kind == JObject:
+    let fields = n[key].getFields()
+    for k,v in fields:
+      result[k] = v
 
 proc getString*(n: JsonNode; key: string): string =
   if n.hasKey(key):
@@ -122,15 +140,12 @@ macro loadJson*(j :JsonNode;main :typed; types : varargs[typed]): untyped =
                       result.add quote do:
                         `main`.`field` = `j`.getString(`field_as_string`):
                     else:
-                      echo field_as_string & ">>>>" & $ftype
                       result.add quote do:
                         `main`.`field` = `ftype`()
                 of nnkBracketExpr:
                   var params = newSeq[NimNode](0)
                   for subv in ftype.children:
                     params.add(subv)
-                  echo params[0]
-                  echo params[1]
                   case $params[0]:
                     of "seq":
                       case $params[1]:
@@ -161,14 +176,23 @@ macro loadJson*(j :JsonNode;main :typed; types : varargs[typed]): untyped =
                             of "string":
                               result.add quote do:
                                 `main`.`field` = `j`.getTableStr(`field_as_string`):
+                            else:
+                              continue
+                        else:
+                          continue
+                    of "OrderedTableRef":
+                      case $params[1]:
+                        of "string":
+                          case $params[2]:
+                            of "string":
+                              result.add quote do:
+                                `main`.`field` = `j`.getOrdTableStr(`field_as_string`)
                         else:
                           echo "table index not supported"
                 else:
                   echo "invalid"
             else:
-              echo "???????"
-              echo vars.kind
-              echo "???????"
+              continue
 
 when isMainModule:
   type SubNode = ref object of RootObj
@@ -186,6 +210,7 @@ when isMainModule:
     subt: TableRef[string,SubNode]
     date: DateTime
     tags : seq[string]
+    nodes : seq[SubNode]
     nums : seq[int8]
     sub: SubNode
 
@@ -208,6 +233,12 @@ when isMainModule:
         "data" : 90
       }
     },
+    "nodes" : [
+      {
+        "info" : "test",
+        "data" : 90
+      }
+    ],
     "sub"  : {
       "info" : "test",
       "data" : 90
@@ -216,10 +247,9 @@ when isMainModule:
   """)
 
   var tr = TestEvent(  date: now())
+  tr.subt = newTable[string,SubNode]()
   var be = BaseEvent()
-  expandMacros:
-    loadJson(j,tr[],be[])
-    loadJson(j.getObj("sub"),tr.sub[])
-    echo tr[]
-    echo tr.sub[]
-
+  loadJson(j,tr[],be[])
+  loadJson(j.getObj("sub"),tr.sub[])
+  echo tr[]
+  echo tr.sub[]

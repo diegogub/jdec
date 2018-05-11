@@ -4,8 +4,8 @@ Flexible json parser and helper function to marshal/unmarshal json into objects.
 
 * Support to all common types
 * Date Date iso 8601 support.
-* Seq support: 
-* Table support: TableRef[string,string] , TableRef[string,T]
+* Seq support: seq[string], seq[int]
+* Table support: TableRef[string,string]
 * No missing key exception (compared to the json macro: to(JsonNode,T))
 
 
@@ -24,7 +24,6 @@ Flexible json parser and helper function to marshal/unmarshal json into objects.
     num: int32
     flag: bool
     tref: TableRef[string,string]
-    subt: TableRef[string,SubNode]
     date: DateTime
     tags : seq[string]
     nums : seq[int8]
