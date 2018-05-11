@@ -1,0 +1,5 @@
+src/jdec
+src/nimcache
+tests/*
+!tests/*.nim
+
