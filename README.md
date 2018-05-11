@@ -1,6 +1,5 @@
 # Jdec
-
-Flexible json parser and helper function to marshal/unmarshal json into objects.
+Flexible json parser and helper to marshal/unmarshal json into objects.
 
 * Support to all common types
 * Date Date iso 8601 support.
