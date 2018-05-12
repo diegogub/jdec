@@ -1,4 +1,6 @@
 # Jdec
+[![GitHub release](https://img.shields.io/github/release/qubyte/rubidium.svg)](https://github.com/diegogub/jdec)
+
 Flexible json parser and helper to marshal/unmarshal json into objects.
 
 * Support to all common types
@@ -93,6 +95,7 @@ Flexible json parser and helper to marshal/unmarshal json into objects.
 ```
 
 ## TODO
+* Improve API
 * Add Uri support
 * Add more table support
 * Add more date format support
