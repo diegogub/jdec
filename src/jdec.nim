@@ -120,6 +120,7 @@ proc getString*(n: JsonNode; key: string): string =
   else:
     return ""
 
+# loadJson, load JsonNode into object, and ref types
 macro loadJson*(j :JsonNode;main :typed; types : varargs[typed]): untyped =
     result = nnkStmtList.newTree()
     types.add(main)
@@ -220,6 +221,7 @@ macro loadJson*(j :JsonNode;main :typed; types : varargs[typed]): untyped =
             else:
               continue
 
+# loadTable , load table of objects from JsonNode into TableRef[string,T]
 template loadTable*(j :JsonNode; t :typed; key: static[string]; isType : typedesc;isOf : varargs[typed]): untyped =
   let nodes = j.getTableJson(key)
   for k, n in nodes.pairs():
@@ -227,6 +229,7 @@ template loadTable*(j :JsonNode; t :typed; key: static[string]; isType : typedes
     loadJson(n,s[],isOf)
     `t`[k] = s
 
+# loadArray, load array of objects from JsonNode into seq[T]
 template loadArray*(j :JsonNode; t :typed; key: static[string]; isType : typedesc;isOf : varargs[typed]): untyped =
   let nodes = j.getArray(key)
   `t` = newseq[isType](nodes.len)
