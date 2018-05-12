@@ -48,6 +48,13 @@ proc getArrayInt*(n: JsonNode; key: string): seq[int64] =
     for node in nodes:
       result.add(node.getInt())
 
+proc getArray*(n: JsonNode; key: string): seq[JsonNode] =
+  result = newSeq[JsonNode](0)
+  if n.hasKey(key):
+    let nodes = n[key].getElems()
+    for node in nodes:
+      result.add(node)
+
 proc toInt(a :seq[int64]): seq[int] =
   result = newSeq[int](0)
   for n in a:
@@ -137,6 +144,7 @@ macro loadJson*(j :JsonNode;main :typed; types : varargs[typed]): untyped =
                           result.add quote do:
                             `main`.`field` = `j`.getInt(`field_as_string`)
                     of "string":
+                      echo field_as_string
                       result.add quote do:
                         `main`.`field` = `j`.getString(`field_as_string`):
                     else:
@@ -194,13 +202,30 @@ macro loadJson*(j :JsonNode;main :typed; types : varargs[typed]): untyped =
             else:
               continue
 
+template loadTable(j :JsonNode; t :typed; key: static[string]; isType : typedesc;isOf : varargs[typed]): untyped =
+  let nodes = j.getTableJson(key)
+  for k, n in nodes.pairs():
+    var s = `isType`()
+    loadJson(n,s[],isOf)
+    `t`[k] = s
+
+template loadArray(j :JsonNode; t :typed; key: static[string]; isType : typedesc;isOf : varargs[typed]): untyped =
+  let nodes = j.getArray(key)
+  `t` = newseq[isType](nodes.len)
+  for k, n in nodes:
+    var s = `isType`()
+    loadJson(n,s[],isOf)
+    `t`[k] = s
+
+
 when isMainModule:
-  type SubNode = ref object of RootObj
-    info: string
-    data: int
 
   type BaseEvent = ref object of RootObj
     id :string
+
+  type SubNode = ref object of BaseEvent
+    info: string
+    data: int
 
   type TestEvent = ref object of BaseEvent
     data : string
@@ -226,12 +251,17 @@ when isMainModule:
     "flag" : true,
     "date" : "2018-05-10T09:49:18-12:00",
     "nums" : [3,3,12,35,64,12],
-    "tags"  : [ "ptup"],
+    "tags"  : [ "tag1" , "tag2", "asds"],
     "subt"  : {
-      "0"  : {
+      "test"  : {
+        "id" : "sub2",
         "info" : "sub_test",
         "data" : 90
-      }
+      },
+      "super1"  : {
+        "data" : 102
+      },
+      "otherkey": {}
     },
     "nodes" : [
       {
@@ -249,7 +279,22 @@ when isMainModule:
   var tr = TestEvent(  date: now())
   tr.subt = newTable[string,SubNode]()
   var be = BaseEvent()
+
+  # Load base object and ref attributes too
   loadJson(j,tr[],be[])
+  # Load sub object
   loadJson(j.getObj("sub"),tr.sub[])
+  # Load table of objects SubNode type
+  loadTable(j,tr.subt,"subt",SubNode,be[])
+  # Load array of objects
+  loadArray(j,tr.nodes,"nodes",SubNode,be[])
+
   echo tr[]
   echo tr.sub[]
+  for k,s in tr.nodes:
+    echo "node"
+    echo s[]
+
+  for k,s in tr.subt:
+    echo "subt"
+    echo s[]

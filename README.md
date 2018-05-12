@@ -11,20 +11,22 @@ Flexible json parser and helper to marshal/unmarshal json into objects.
 ### Example usage
 
 ```
-  type SubNode = ref object of RootObj
-    info: string
-    data: int
-
   type BaseEvent = ref object of RootObj
     id :string
+
+  type SubNode = ref object of BaseEvent
+    info: string
+    data: int
 
   type TestEvent = ref object of BaseEvent
     data : string
     num: int32
     flag: bool
     tref: TableRef[string,string]
+    subt: TableRef[string,SubNode]
     date: DateTime
     tags : seq[string]
+    nodes : seq[SubNode]
     nums : seq[int8]
     sub: SubNode
 
@@ -40,13 +42,24 @@ Flexible json parser and helper to marshal/unmarshal json into objects.
     "flag" : true,
     "date" : "2018-05-10T09:49:18-12:00",
     "nums" : [3,3,12,35,64,12],
-    "tags"  : [ "ptup"],
+    "tags"  : [ "tag1" , "tag2", "asds"],
     "subt"  : {
-      "0"  : {
+      "test"  : {
+        "id" : "sub2",
         "info" : "sub_test",
         "data" : 90
-      }
+      },
+      "super1"  : {
+        "data" : 102
+      },
+      "otherkey": {}
     },
+    "nodes" : [
+      {
+        "info" : "test",
+        "data" : 90
+      }
+    ],
     "sub"  : {
       "info" : "test",
       "data" : 90
@@ -55,12 +68,27 @@ Flexible json parser and helper to marshal/unmarshal json into objects.
   """)
 
   var tr = TestEvent(  date: now())
+  tr.subt = newTable[string,SubNode]()
   var be = BaseEvent()
-  expandMacros:
-    loadJson(j,tr[],be[])
-    loadJson(j.getObj("sub"),tr.sub[])
-    echo tr[]
-    echo tr.sub[]
+
+  # Load base object and ref attributes too
+  loadJson(j,tr[],be[])
+  # Load sub object
+  loadJson(j.getObj("sub"),tr.sub[])
+  # Load table of objects SubNode type
+  loadTable(j,tr.subt,"subt",SubNode,be[])
+  # Load array of objects
+  loadArray(j,tr.nodes,"nodes",SubNode,be[])
+
+  echo tr[]
+  echo tr.sub[]
+  for k,s in tr.nodes:
+    echo "node"
+    echo s[]
+
+  for k,s in tr.subt:
+    echo "subt"
+    echo s[]
 
 ```
 
