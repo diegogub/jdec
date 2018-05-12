@@ -220,14 +220,14 @@ macro loadJson*(j :JsonNode;main :typed; types : varargs[typed]): untyped =
             else:
               continue
 
-template loadTable(j :JsonNode; t :typed; key: static[string]; isType : typedesc;isOf : varargs[typed]): untyped =
+template loadTable*(j :JsonNode; t :typed; key: static[string]; isType : typedesc;isOf : varargs[typed]): untyped =
   let nodes = j.getTableJson(key)
   for k, n in nodes.pairs():
     var s = `isType`()
     loadJson(n,s[],isOf)
     `t`[k] = s
 
-template loadArray(j :JsonNode; t :typed; key: static[string]; isType : typedesc;isOf : varargs[typed]): untyped =
+template loadArray*(j :JsonNode; t :typed; key: static[string]; isType : typedesc;isOf : varargs[typed]): untyped =
   let nodes = j.getArray(key)
   `t` = newseq[isType](nodes.len)
   for k, n in nodes:
