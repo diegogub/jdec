@@ -93,21 +93,21 @@ proc toInt32(a :seq[int64]): seq[int32] =
   for n in a:
     result.add(int32(n))
 
-proc getOrdTableStr(n: JsonNode; key: string): OrderedTableRef[string,string] =
+proc getOrdTableStr*(n: JsonNode; key: string): OrderedTableRef[string,string] =
   result = newOrderedTable[string,string]()
   if n.hasKey(key) and n[key].kind == JObject:
     let fields = n[key].getFields()
     for k,v in fields:
       result[k] = v.getStr()
 
-proc getTableStr(n: JsonNode; key: string): TableRef[string,string] =
+proc getTableStr*(n: JsonNode; key: string): TableRef[string,string] =
   result = newTable[string,string]()
   if n.hasKey(key) and n[key].kind == JObject:
     let fields = n[key].getFields()
     for k,v in fields:
       result[k] = v.getStr()
 
-proc getTableJson(n: JsonNode; key: string): TableRef[string,JsonNode] =
+proc getTableJson*(n: JsonNode; key: string): TableRef[string,JsonNode] =
   result = newTable[string,JsonNode]()
   if n.hasKey(key) and n[key].kind == JObject:
     let fields = n[key].getFields()
