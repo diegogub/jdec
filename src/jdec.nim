@@ -1,7 +1,7 @@
 # jdec
 # Copyright Diego Guraieb
 # easy json helpers to marshal and unmarshal json
-import macros, json, tables, times
+import macros, json, tables, times, options
 
 
 const
@@ -9,6 +9,24 @@ const
 
 let defaultTimezone* = utc()
 
+proc `%`*[T](t :TableRef[string,T]) : JsonNode =
+  result = newJObject()
+  for k , s in t:
+    result[k] = %s
+
+proc `%`*[T](t :OrderedTableRef[string,T]) : JsonNode =
+  result = newJObject()
+  for k , s in t:
+    result[k] = %s
+
+proc `%`*(t :DateTime) : JsonNode =
+  result = newJString(t.format(dateISO8601))
+
+proc `%`*[T](o :Option[T]) : JsonNode =
+  if o.isSome():
+    result = %o.some()
+  else:
+    result = newJNull()
 
 proc getInt*(n: JsonNode; key: string): int64 =
   if n.hasKey(key):
@@ -298,3 +316,5 @@ when isMainModule:
   for k,s in tr.subt:
     echo "subt"
     echo s[]
+
+  echo %tr
