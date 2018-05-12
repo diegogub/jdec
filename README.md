@@ -1,5 +1,4 @@
 # Jdec
-[![GitHub release](https://img.shields.io/github/release/qubyte/rubidium.svg)](https://github.com/diegogub/jdec)
 
 Flexible json parser and helper to marshal/unmarshal json into objects.
 
