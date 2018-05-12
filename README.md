@@ -3,8 +3,8 @@ Flexible json parser and helper to marshal/unmarshal json into objects.
 
 * Support to all common types
 * Date Date iso 8601 support.
-* Seq support: seq[string], seq[int]
-* Table support: TableRef[string,string]
+* Seq support: seq[string], seq[int], seq[T]
+* Table support: TableRef[string,string], TableRef[string,T]
 * No missing key exception (compared to the json macro: to(JsonNode,T))
 
 
