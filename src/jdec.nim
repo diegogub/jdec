@@ -6,6 +6,7 @@ import macros, json, tables, times, options
 
 const
   dateISO8601* = "yyyy-MM-dd'T'HH:mm:sszzz"
+  dateSpaceISO8601* = "yyyy-MM-dd HH:mm:sszzz"
 
 
 let defaultTimezone* = utc()
