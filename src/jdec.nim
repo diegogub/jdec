@@ -7,6 +7,7 @@ import macros, json, tables, times, options
 const
   dateISO8601* = "yyyy-MM-dd'T'HH:mm:sszzz"
 
+
 let defaultTimezone* = utc()
 
 proc `%`*[T](t :TableRef[string,T]) : JsonNode =
@@ -40,9 +41,9 @@ proc getObj*(n: JsonNode; key: string): JsonNode =
   else:
     return newJObject()
 
-proc getDate*(n: JsonNode; key: string): DateTime =
+proc getDate*(n: JsonNode; key, format: string): DateTime =
   if n.hasKey(key):
-    return parse(n[key].getStr(),dateISO8601,defaultTimezone)
+    return parse(n[key].getStr(),format,defaultTimezone)
   else:
     let dt = initDateTime(30, mMar, 2017, 00, 00, 00, defaultTimezone)
 
@@ -120,8 +121,8 @@ proc getString*(n: JsonNode; key: string): string =
   else:
     return ""
 
-# loadJson, load JsonNode into object, and ref types
-macro loadJson*(j :JsonNode;main :typed; types : varargs[typed]): untyped =
+# loadJson, load JsonNode into object, and ref types. Change dateFormat to read any custom time format https://nim-lang.org/docs/times.html#parse,string,string,Timezone
+macro loadJson*(j :JsonNode;main :typed; types : varargs[typed]; dateFormat = dateISO8601 ): untyped =
     result = nnkStmtList.newTree()
     types.add(main)
     for t in types:
@@ -144,7 +145,7 @@ macro loadJson*(j :JsonNode;main :typed; types : varargs[typed]): untyped =
                         `main`.`field` = `j`.getObj(`field_as_string`)
                     of "DateTime":
                       result.add quote do:
-                        `main`.`field` = `j`.getDate(`field_as_string`)
+                        `main`.`field` = `j`.getDate(`field_as_string`,`dateFormat`)
                     of "int", "int16", "int32", "int64", "uint64":
                       case $ftype:
                         of "int8":
