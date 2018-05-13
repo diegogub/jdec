@@ -74,6 +74,8 @@ Flexible json parser and helper to marshal/unmarshal json into objects.
 
   # Load base object and ref attributes too
   loadJson(j,tr[],be[])
+  # Change dateFormat to read any date format
+  #loadJson(j,tr[],be[],dateFormat="yyyyMM")
   # Load sub object
   loadJson(j.getObj("sub"),tr.sub[])
   # Load table of objects SubNode type
