@@ -100,4 +100,3 @@ Flexible json parser and helper to marshal/unmarshal json into objects.
 * Improve API
 * Add Uri support
 * Add more table support
-* Add more date format support
