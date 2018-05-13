@@ -164,7 +164,6 @@ macro loadJson*(j :JsonNode;main :typed; types : varargs[typed]; dateFormat = da
                           result.add quote do:
                             `main`.`field` = `j`.getInt(`field_as_string`)
                     of "string":
-                      echo field_as_string
                       result.add quote do:
                         `main`.`field` = `j`.getString(`field_as_string`):
                     else:
@@ -223,18 +222,18 @@ macro loadJson*(j :JsonNode;main :typed; types : varargs[typed]; dateFormat = da
               continue
 
 # loadTable , load table of objects from JsonNode into TableRef[string,T]
-template loadTable*(j :JsonNode; t :typed; key: static[string]; isType : typedesc;isOf : varargs[typed]): untyped =
+template loadTable*(j :JsonNode; t :typed; key: static[string]; isType : typedesc;isOf : varargs[typed]; tableDateFormat = dateISO8601 ): untyped =
   let nodes = j.getTableJson(key)
   for k, n in nodes.pairs():
     var s = `isType`()
-    loadJson(n,s[],isOf)
+    loadJson(n,s[],isOf,dateFormat = tableDateFormat)
     `t`[k] = s
 
 # loadArray, load array of objects from JsonNode into seq[T]
-template loadArray*(j :JsonNode; t :typed; key: static[string]; isType : typedesc;isOf : varargs[typed]): untyped =
+template loadArray*(j :JsonNode; t :typed; key: static[string]; isType : typedesc;isOf : varargs[typed]; arrayDateFormat = dateISO8601): untyped =
   let nodes = j.getArray(key)
   `t` = newseq[isType](nodes.len)
   for k, n in nodes:
     var s = `isType`()
-    loadJson(n,s[],isOf)
+    loadJson(n,s[],isOf, dateFormat = arrayDateFormat)
     `t`[k] = s
