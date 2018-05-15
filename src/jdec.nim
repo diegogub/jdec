@@ -13,12 +13,12 @@ let defaultTimezone* = utc()
 
 proc `%`*[T](t :TableRef[string,T]) : JsonNode =
   result = newJObject()
-  for k , s in t:
+  for k , s in t.pairs():
     result[k] = %s
 
 proc `%`*[T](t :OrderedTableRef[string,T]) : JsonNode =
   result = newJObject()
-  for k , s in t:
+  for k , s in t.pairs():
     result[k] = %s
 
 proc `%`*(t :DateTime) : JsonNode =
