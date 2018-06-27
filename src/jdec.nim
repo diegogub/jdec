@@ -4,6 +4,12 @@
 import macros, json, tables, times, options
 
 
+type
+  JsonCheck = enum
+    ValidJson
+    MissingField
+    InvalidField
+
 const
   dateISO8601* = "yyyy-MM-dd'T'HH:mm:sszzz"
   dateSpaceISO8601* = "yyyy-MM-dd HH:mm:sszzz"
@@ -221,6 +227,31 @@ macro loadJson*(j :JsonNode;main :typed; types : varargs[typed]; dateFormat = da
                   echo "invalid"
             else:
               continue
+
+type JsonField* = ref object of RootObj
+  mandatory*: bool
+
+type JsonSchema* = ref object of RootObj
+  fields*: TableRef[string,JsonField]
+
+proc newJsonSchema*(): JsonSchema =
+  result = JsonSchema()
+  result.fields = newTable[string,JsonField]()
+
+proc addField*(js :JsonSchema; name :string; fMandatory = false) =
+  js.fields[name] = JsonField(mandatory : fMandatory)
+
+proc valid*(j :JsonNode; schema :JsonSchema; strict = true): JsonCheck =
+  result = ValidJson
+  for key,f in j.pairs():
+    if not schema.fields.hasKey(key):
+      if strict:
+        result = InvalidField
+
+  for key, f in schema.fields:
+    if not j.hasKey(key):
+      if f.mandatory:
+        result = MissingField
 
 # loadTable , load table of objects from JsonNode into TableRef[string,T]
 template loadTable*(j :JsonNode; t :typed; key: static[string]; isType : typedesc;isOf : varargs[typed]; tableDateFormat = dateISO8601 ): untyped =
