@@ -5,7 +5,7 @@ import macros, json, tables, times, options
 
 
 type
-  JsonCheck = enum
+  JsonCheck* = enum
     ValidJson
     MissingField
     InvalidField
